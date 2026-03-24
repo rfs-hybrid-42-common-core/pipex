@@ -6,7 +6,7 @@
 #    By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/12/03 18:21:29 by maaugust          #+#    #+#              #
-#    Updated: 2026/03/20 03:22:41 by maaugust         ###   ########.fr        #
+#    Updated: 2026/03/24 18:14:54 by maaugust         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@ NAME             = libft.a
 
 # ============================== COMPILER FLAGS ============================== #
 CC               = cc
-CFLAGS           = -Wall -Wextra -Werror
+CFLAGS           = -Wall -Wextra -Werror -MMD -MP
 INCLUDES         = -Iincludes
 AR               = ar rcs
 RM               = rm -rf
@@ -62,3 +62,6 @@ re: fclean all
 
 # ============================== PHONY TARGETS =============================== #
 .PHONY: all clean fclean re
+
+# =============================== DEPENDENCIES =============================== #
+-include $(OBJ:.o=.d)
