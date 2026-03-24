@@ -6,39 +6,11 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 03:46:59 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 04:06:50 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 02:02:36 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-
-/**
- * @fn static void free_cmd_paths(char **cmd, char **paths)
- * @brief Frees dynamically allocated 2D arrays.
- * @details Safely iterates through command argument arrays and path string 
- * arrays, freeing individual elements and the main pointers.
- * @param cmd   The 2D array of command arguments to free (can be NULL).
- * @param paths The 2D array of environment paths to free (can be NULL).
- */
-static void	free_cmd_paths(char **cmd, char **paths)
-{
-	int	i;
-
-	if (cmd)
-	{
-		i = -1;
-		while (cmd[++i])
-			free(cmd[i]);
-		free(cmd);
-	}
-	if (paths)
-	{
-		i = -1;
-		while (paths[++i])
-			free(paths[i]);
-		free(paths);
-	}
-}
 
 /**
  * @fn static void try_exec_absolute_relative(t_data *data, char **cmd, 
@@ -54,6 +26,7 @@ static void	try_exec_absolute_relative(t_data *data, char **cmd, char **envp)
 {
 	errno = 0;
 	execve(cmd[0], cmd, envp);
+	print_sys_error(cmd[0]);
 	free_cmd_paths(cmd, NULL);
 	if (errno == ENOENT)
 		error_handler(data, NOT_FOUND, 127);
@@ -61,10 +34,36 @@ static void	try_exec_absolute_relative(t_data *data, char **cmd, char **envp)
 }
 
 /**
+ * @fn char **ft_get_path(const char *var, char **envp)
+ * @brief Extracts a specific variable from the environment array.
+ * @details Searches for 'var' (e.g., "PATH"). Once found, it skips the 
+ * variable name and the '=' sign, splitting the rest of the string by ':'.
+ * @param var  The environment variable to search for.
+ * @param envp The full array of environment variables.
+ * @return     A 2D array of the separated paths, or NULL if not found.
+ */
+char	**ft_get_path(const char *var, char **envp)
+{
+	size_t	len;
+	int		i;
+
+	if (!envp)
+		return (NULL);
+	len = ft_strlen(var);
+	i = -1;
+	while (envp[++i])
+	{
+		if (!ft_strncmp(envp[i], var, len) && envp[i][len] == '=')
+			return (ft_split(envp[i] + len + 1, ':'));
+	}
+	return (NULL);
+}
+
+/**
  * @fn static char *get_cmd_path(t_data *data, char **cmd, char **paths)
  * @brief Searches the environment paths to find the valid executable.
  * @details Appends a '/' to each path, concatenates the command name, and 
- * checks its accessibility using access() with X_OK.
+ * checks its accessibility using access() with F_OK.
  * @param data  Pointer to the master data structure.
  * @param cmd   Array of command arguments where cmd[0] is the command name.
  * @param paths Array of available system PATH directories.
@@ -88,7 +87,7 @@ static char	*get_cmd_path(t_data *data, char **cmd, char **paths)
 			free_cmd_paths(cmd, paths);
 			error_handler(data, CALLOC, 1);
 		}
-		if (access(full_path, X_OK) == 0)
+		if (access(full_path, F_OK) == 0)
 			return (full_path);
 		free(full_path);
 	}
@@ -110,14 +109,15 @@ static void	run_cmd(t_data *data, char **cmd, char *cmd_path, char **envp)
 {
 	if (!cmd_path)
 	{
+		print_cmd_error(cmd[0], ": command not found\n");
 		free_cmd_paths(cmd, NULL);
 		error_handler(data, NOT_FOUND, 127);
 	}
 	errno = 0;
 	execve(cmd_path, cmd, envp);
+	print_sys_error(cmd[0]);
 	free_cmd_paths(cmd, NULL);
 	free(cmd_path);
-	cmd_path = NULL;
 	if (errno == ENOENT)
 		error_handler(data, NOT_FOUND, 127);
 	error_handler(data, NOT_EXEC, 126);
@@ -139,17 +139,13 @@ void	execute(t_data *data, const char *str, char **envp)
 	char	**paths;
 	char	*cmd_path;
 
-	cmd = ft_split(str, ' ');
-	if (!cmd || !cmd[0] || !*cmd[0])
-	{
-		free_cmd_paths(cmd, NULL);
-		error_handler(data, NOT_FOUND, 127);
-	}
+	cmd = parser(data, str);
 	if (ft_strchr(cmd[0], '/'))
 		try_exec_absolute_relative(data, cmd, envp);
 	paths = ft_get_path("PATH", envp);
 	if (!paths)
 	{
+		print_cmd_error(cmd[0], ": command not found\n");
 		free_cmd_paths(cmd, NULL);
 		error_handler(data, NOT_FOUND, 127);
 	}

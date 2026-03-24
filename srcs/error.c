@@ -6,11 +6,42 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 21:46:10 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 13:44:39 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 02:02:36 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+
+/**
+ * @fn void print_sys_error(const char *msg)
+ * @brief Prints a standard system error message with the program prefix.
+ * @details Prepends the program name ("pipex: ") to standard error, then 
+ * utilizes perror() to automatically append the system's errno description. 
+ * This ensures standard system errors (like locked files or missing 
+ * directories) perfectly match bash's output format.
+ * @param msg The context string (usually a filename or command) to be 
+ * printed before the system error description.
+ */
+void	print_sys_error(const char *msg)
+{
+	write(STDERR_FILENO, "pipex: ", 7);
+	perror(msg);
+}
+
+/**
+ * @fn void print_cmd_error(const char *cmd, const char *msg)
+ * @brief Prints a formatted error message to standard error.
+ * @details Prepends the program name, then concatenates the command name 
+ * with the specific error message to perfectly mimic standard bash output.
+ * @param cmd The command name that triggered the error.
+ * @param msg The error description string.
+ */
+void	print_cmd_error(const char *cmd, const char *msg)
+{
+	write(STDERR_FILENO, "pipex: ", 7);
+	write(STDERR_FILENO, cmd, ft_strlen(cmd));
+	write(STDERR_FILENO, msg, ft_strlen(msg));
+}
 
 /**
  * @fn void error_handler(t_data *data, const t_error error, int status_code)
@@ -25,21 +56,17 @@
 void	error_handler(t_data *data, const t_error error, int status_code)
 {
 	if (error == CALLOC)
-		perror("calloc failed");
+		print_sys_error("calloc");
 	else if (error == OPEN)
-		perror("open failed");
+		print_sys_error("open");
 	else if (error == CLOSE)
-		perror("close failed");
+		print_sys_error("close");
 	else if (error == PIPE)
-		perror("pipe failed");
+		print_sys_error("pipe");
 	else if (error == FORK)
-		perror("fork failed");
+		print_sys_error("fork");
 	else if (error == DUP2)
-		perror("dup2 failed");
-	else if (error == NOT_EXEC)
-		perror("found but not executable");
-	else if (error == NOT_FOUND)
-		write(STDERR_FILENO, "command not found\n", 18);
+		print_sys_error("dup2");
 	if (data)
 		free_data(data);
 	exit(status_code);

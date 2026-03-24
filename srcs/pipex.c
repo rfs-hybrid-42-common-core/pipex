@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 02:11:40 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 13:56:39 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 05:35:16 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,18 @@
 
 /**
  * @fn static int wait_processes(t_data *data)
- * @brief Waits for child processes and extracts the final exit code.
- * @details Loops through the stored child PIDs, waiting for each. 
- * Captures the exit status of the very last command in the pipeline.
+ * @brief Waits for specific child processes and extracts the final exit code.
+ * @details Loops through the stored child PIDs, waiting for each specifically 
+ * by its PID to prevent catching unrelated processes. Captures the exit 
+ * status of the very last command in the pipeline.
  * @param data Pointer to the master data structure.
  * @return     The exit status of the last executed command.
  */
 static int	wait_processes(t_data *data)
 {
-	int	exit_code;
-	int	status;
-	int	i;
+	int		exit_code;
+	int		status;
+	int		i;
 
 	i = -1;
 	exit_code = 0;
@@ -32,8 +33,13 @@ static int	wait_processes(t_data *data)
 	{
 		if (waitpid(data->pid[i], &status, 0) < 0)
 			error_handler(data, WAIT, 1);
-		if (i == 1 && WIFEXITED(status))
-			exit_code = WEXITSTATUS(status);
+		if (i == 1)
+		{
+			if (WIFEXITED(status))
+				exit_code = WEXITSTATUS(status);
+			else if (WIFSIGNALED(status))
+				exit_code = 128 + WTERMSIG(status);
+		}
 	}
 	return (exit_code);
 }
@@ -85,7 +91,7 @@ int	main(int argc, char **argv, char **envp)
 	t_data	data;
 	int		exit_code;
 
-	if (argc < 5)
+	if (argc != 5)
 	{
 		write(STDERR_FILENO, "Wrong number of arguments!\n", 27);
 		write(STDERR_FILENO, "Usage:\t./pipex file1 cmd1 cmd2 file2\n", 37);

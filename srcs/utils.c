@@ -6,36 +6,38 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 02:24:22 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 04:10:17 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 02:02:36 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
 /**
- * @fn char **ft_get_path(const char *var, char **envp)
- * @brief Extracts a specific variable from the environment array.
- * @details Searches for 'var' (e.g., "PATH"). Once found, it skips the 
- * variable name and the '=' sign, splitting the rest of the string by ':'.
- * @param var  The environment variable to search for.
- * @param envp The full array of environment variables.
- * @return     A 2D array of the separated paths, or NULL if not found.
+ * @fn void free_cmd_paths(char **cmd, char **paths)
+ * @brief Frees dynamically allocated 2D arrays.
+ * @details Safely iterates through command argument arrays and path string 
+ * arrays, freeing individual elements and the main pointers.
+ * @param cmd   The 2D array of command arguments to free (can be NULL).
+ * @param paths The 2D array of environment paths to free (can be NULL).
  */
-char	**ft_get_path(const char *var, char **envp)
+void	free_cmd_paths(char **cmd, char **paths)
 {
-	size_t	len;
-	int		i;
+	int	i;
 
-	if (!envp)
-		return (NULL);
-	len = ft_strlen(var);
-	i = -1;
-	while (envp[++i])
+	if (cmd)
 	{
-		if (!ft_strncmp(envp[i], var, len) && envp[i][len] == '=')
-			return (ft_split(envp[i] + len + 1, ':'));
+		i = -1;
+		while (cmd[++i])
+			free(cmd[i]);
+		free(cmd);
 	}
-	return (NULL);
+	if (paths)
+	{
+		i = -1;
+		while (paths[++i])
+			free(paths[i]);
+		free(paths);
+	}
 }
 
 /**
@@ -54,7 +56,7 @@ int	safe_open(const char *file, int flags, mode_t mode)
 
 	fd = open(file, flags, mode);
 	if (fd < 0)
-		perror(file);
+		print_sys_error(file);
 	return (fd);
 }
 
@@ -68,11 +70,14 @@ int	safe_open(const char *file, int flags, mode_t mode)
  */
 void	safe_close(t_data *data, int *fd)
 {
+	int	tmp;
+
 	if (*fd >= 0)
 	{
-		if (close(*fd) < 0)
-			error_handler(data, CLOSE, 1);
+		tmp = *fd;
 		*fd = -1;
+		if (close(tmp) < 0)
+			error_handler(data, CLOSE, 1);
 	}
 }
 
@@ -87,6 +92,6 @@ void	free_data(t_data *data)
 {
 	safe_close(data, &data->fd.in);
 	safe_close(data, &data->fd.out);
-	safe_close(data, &data->p_fd[0]);
-	safe_close(data, &data->p_fd[1]);
+	safe_close(data, &data->pipe_fd[0]);
+	safe_close(data, &data->pipe_fd[1]);
 }

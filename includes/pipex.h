@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 02:10:43 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 05:19:48 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 02:02:36 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,15 +82,15 @@ typedef struct s_fd
  * @brief Master data structure for the Pipex program.
  * @details Stores child process IDs, file descriptors for files, and the 
  * pipe file descriptors needed for inter-process communication.
- * @var pid  Array storing the process IDs of the child processes.
- * @var fd   Struct containing the input and output file descriptors.
- * @var p_fd Array storing the read and write ends of the pipe.
+ * @var pid     Array storing the process IDs of the child processes.
+ * @var fd      Struct containing the input and output file descriptors.
+ * @var pipe_fd Array storing the read and write ends of the pipe.
  */
 typedef struct s_data
 {
 	pid_t	pid[2];
 	t_fd	fd;
-	int		p_fd[2];
+	int		pipe_fd[2];
 }	t_data;
 
 /* ========================================================================== */
@@ -103,14 +103,17 @@ void	init(t_data *data, char **argv);
 /* ---------------------------- Execution Logic ----------------------------- */
 void	execute(t_data *data, const char *str, char **envp);
 void	child(t_data *data, const int index);
-char	**ft_get_path(const char *var, char **envp);
+char	**parser(t_data *data, const char *str);
 
 /* -------------------------- File & FD Utilities --------------------------- */
 int		safe_open(const char *file, int flags, mode_t mode);
 void	safe_close(t_data *data, int *fd);
 
 /* ------------------------ Cleanup & Error Handling ------------------------ */
-void	free_data(t_data *data);
+void	print_sys_error(const char *str);
+void	print_cmd_error(const char *cmd, const char *msg);
 void	error_handler(t_data *data, const t_error error, int status_code);
+void	free_cmd_paths(char **cmd, char **paths);
+void	free_data(t_data *data);
 
 #endif

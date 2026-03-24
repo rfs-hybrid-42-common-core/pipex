@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 02:11:40 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 05:07:43 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 05:35:22 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,10 @@
 
 /**
  * @fn static int wait_processes(t_data *data)
- * @brief Waits for child processes and extracts the final exit code.
- * @details Loops through the stored child PIDs, waiting for each. 
- * Captures the exit status of the very last command in the pipeline.
+ * @brief Waits for specific child processes and extracts the final exit code.
+ * @details Loops through the stored child PIDs, waiting for each specifically 
+ * by its PID to prevent catching unrelated processes. Captures the exit 
+ * status of the very last command in the pipeline.
  * @param data Pointer to the master data structure.
  * @return     The exit status of the last executed command.
  */
@@ -32,8 +33,13 @@ static int	wait_processes(t_data *data)
 	{
 		if (waitpid(data->pid[i], &status, 0) < 0)
 			error_handler(data, WAIT, 1);
-		if (i == data->n_cmds - 1 && WIFEXITED(status))
-			exit_code = WEXITSTATUS(status);
+		if (i == data->n_cmds - 1)
+		{
+			if (WIFEXITED(status))
+				exit_code = WEXITSTATUS(status);
+			else if (WIFSIGNALED(status))
+				exit_code = 128 + WTERMSIG(status);
+		}
 	}
 	return (exit_code);
 }
@@ -56,6 +62,8 @@ static int	pipex(t_data *data, char **argv, char **envp)
 	i = -1;
 	while (++i < data->n_cmds)
 	{
+		if (i < data->n_cmds - 1 && pipe(data->pipe_fd) < 0)
+			error_handler(data, PIPE, 1);
 		data->pid[i] = fork();
 		if (data->pid[i] < 0)
 			error_handler(data, FORK, 1);
@@ -64,10 +72,13 @@ static int	pipex(t_data *data, char **argv, char **envp)
 			child(data, i);
 			execute(data, argv[i], envp);
 		}
+		safe_close(data, &data->prev_fd);
+		if (i < data->n_cmds - 1)
+		{
+			safe_close(data, &data->pipe_fd[1]);
+			data->prev_fd = data->pipe_fd[0];
+		}
 	}
-	close_pipes(data, -1);
-	safe_close(data, &data->fd.in);
-	safe_close(data, &data->fd.out);
 	return (wait_processes(data));
 }
 

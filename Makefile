@@ -6,7 +6,7 @@
 #    By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/17 03:42:32 by maaugust          #+#    #+#              #
-#    Updated: 2026/03/23 14:00:22 by maaugust         ###   ########.fr        #
+#    Updated: 2026/03/24 01:44:37 by maaugust         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ B_NAME         = pipex_bonus
 
 # ============================== COMPILER FLAGS ============================== #
 CC             = cc
-CFLAGS         = -Wall -Wextra -Werror
+CFLAGS         = -Wall -Wextra -Werror -MMD -MP
 INCLUDES       = -Iincludes -Ilibft/includes
 B_INCLUDES     = -Ibonus/includes -I./../libft/includes
 RM             = rm -rf
@@ -97,3 +97,7 @@ fclean: clean
 re: fclean all
 
 .PHONY: all bonus clean fclean re
+
+# =============================== DEPENDENCIES =============================== #
+-include $(OBJ:.o=.d)
+-include $(B_OBJ:.o=.d)

@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 05:00:25 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 13:53:51 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 01:32:40 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,16 +26,18 @@ static void	redirect_in(t_data *data, const int index)
 	if (index == 0)
 	{
 		if (data->fd.in < 0)
+		{
+			free_data(data);
 			exit(EXIT_FAILURE);
+		}
 		if (dup2(data->fd.in, STDIN_FILENO) < 0)
 			error_handler(data, DUP2, 1);
-		safe_close(data, &data->fd.in);
 	}
 	else
 	{
-		if (dup2(data->p_fd[index - 1][0], STDIN_FILENO) < 0)
+		if (dup2(data->prev_fd, STDIN_FILENO) < 0)
 			error_handler(data, DUP2, 1);
-		safe_close(data, &data->p_fd[index - 1][0]);
+		safe_close(data, &data->prev_fd);
 	}
 }
 
@@ -52,17 +54,20 @@ static void	redirect_out(t_data *data, const int index)
 {
 	if (index < data->n_cmds - 1)
 	{
-		if (dup2(data->p_fd[index][1], STDOUT_FILENO) < 0)
+		if (dup2(data->pipe_fd[1], STDOUT_FILENO) < 0)
 			error_handler(data, DUP2, 1);
-		safe_close(data, &data->p_fd[index][1]);
+		safe_close(data, &data->pipe_fd[1]);
+		safe_close(data, &data->pipe_fd[0]);
 	}
 	else
 	{
 		if (data->fd.out < 0)
+		{
+			free_data(data);
 			exit(EXIT_FAILURE);
+		}
 		if (dup2(data->fd.out, STDOUT_FILENO) < 0)
 			error_handler(data, DUP2, 1);
-		safe_close(data, &data->fd.out);
 	}
 }
 
@@ -70,9 +75,9 @@ static void	redirect_out(t_data *data, const int index)
  * @fn void child(t_data *data, const int index)
  * @brief Orchestrates the input and output redirection for a child process.
  * @details Calls modular helper functions to configure STDIN and STDOUT. 
- * Closes unused pipe file descriptors to prevent hanging, and prevents FD 
- * leaks by ensuring inherited static FDs (infile/outfile) not required by 
- * this specific command are closed before execution.
+ * Prevents FD leaks by unconditionally closing the original static file 
+ * descriptors (infile/outfile) once they have been successfully duplicated 
+ * or bypassed by the current command.
  * @param data  Pointer to the master data structure.
  * @param index The index representing which command is being executed.
  */
@@ -80,9 +85,6 @@ void	child(t_data *data, const int index)
 {
 	redirect_in(data, index);
 	redirect_out(data, index);
-	close_pipes(data, index);
-	if (index != 0)
-		safe_close(data, &data->fd.in);
-	if (index != data->n_cmds - 1)
-		safe_close(data, &data->fd.out);
+	safe_close(data, &data->fd.in);
+	safe_close(data, &data->fd.out);
 }

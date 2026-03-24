@@ -6,60 +6,38 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 02:24:22 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 05:14:24 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 02:02:36 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex_bonus.h"
 
 /**
- * @fn void close_pipes(t_data *data, const int index)
- * @brief Closes all pipes not strictly required by the current child process.
- * @details Iterates through the 2D pipe array. It leaves open only the read 
- * end of the previous pipe and the write end of the current pipe.
- * @param data Pointer to the master data structure.
- * @param index  The index of the current command process.
+ * @fn void free_cmd_paths(char **cmd, char **paths)
+ * @brief Frees dynamically allocated 2D arrays.
+ * @details Safely iterates through command argument arrays and path string 
+ * arrays, freeing individual elements and the main pointers.
+ * @param cmd   The 2D array of command arguments to free (can be NULL).
+ * @param paths The 2D array of environment paths to free (can be NULL).
  */
-void	close_pipes(t_data *data, const int index)
+void	free_cmd_paths(char **cmd, char **paths)
 {
 	int	i;
 
-	if (!data->p_fd)
-		return ;
-	i = -1;
-	while (++i < data->n_pipes)
+	if (cmd)
 	{
-		if (i != index - 1)
-			safe_close(data, &data->p_fd[i][0]);
-		if (i != index)
-			safe_close(data, &data->p_fd[i][1]);
+		i = -1;
+		while (cmd[++i])
+			free(cmd[i]);
+		free(cmd);
 	}
-}
-
-/**
- * @fn char **ft_get_path(const char *var, char **envp)
- * @brief Extracts a specific variable from the environment array.
- * @details Searches for 'var' (e.g., "PATH"). Once found, it skips the 
- * variable name and the '=' sign, splitting the rest of the string by ':'.
- * @param var  The environment variable to search for.
- * @param envp The full array of environment variables.
- * @return     A 2D array of the separated paths, or NULL if not found.
- */
-char	**ft_get_path(const char *var, char **envp)
-{
-	size_t	len;
-	int		i;
-
-	if (!envp)
-		return (NULL);
-	len = ft_strlen(var);
-	i = -1;
-	while (envp[++i])
+	if (paths)
 	{
-		if (!ft_strncmp(envp[i], var, len) && envp[i][len] == '=')
-			return (ft_split(envp[i] + len + 1, ':'));
+		i = -1;
+		while (paths[++i])
+			free(paths[i]);
+		free(paths);
 	}
-	return (NULL);
 }
 
 /**
@@ -78,7 +56,7 @@ int	safe_open(const char *file, int flags, mode_t mode)
 
 	fd = open(file, flags, mode);
 	if (fd < 0)
-		perror(file);
+		print_sys_error(file);
 	return (fd);
 }
 
@@ -92,43 +70,36 @@ int	safe_open(const char *file, int flags, mode_t mode)
  */
 void	safe_close(t_data *data, int *fd)
 {
+	int	tmp;
+
 	if (*fd >= 0)
 	{
-		if (close(*fd) < 0)
-			error_handler(data, CLOSE, 1);
+		tmp = *fd;
 		*fd = -1;
+		if (close(tmp) < 0)
+			error_handler(data, CLOSE, 1);
 	}
 }
 
 /**
  * @fn void free_data(t_data *data)
  * @brief Cleans up dynamically allocated memory and file descriptors.
- * @details Iterates through the stored dynamic variables like process IDs 
- * and pipe arrays. Checks for validity before freeing to prevent double-frees.
+ * @details Safely closes the static FDs, any active pipe ends, and the 
+ * previous pipe's read-end from the sliding window. Finally, it frees the 
+ * PID array.
  * @param data Pointer to the master data structure.
  */
 void	free_data(t_data *data)
 {
-	int	i;
-
 	safe_close(data, &data->fd.in);
 	safe_close(data, &data->fd.out);
-	free(data->pid);
-	data->pid = NULL;
-	i = -1;
-	if (data->p_fd)
+	safe_close(data, &data->pipe_fd[0]);
+	safe_close(data, &data->pipe_fd[1]);
+	safe_close(data, &data->prev_fd);
+	if (data->pid)
 	{
-		while (++i < data->n_pipes)
-		{
-			if (data->p_fd[i])
-			{
-				safe_close(data, &data->p_fd[i][0]);
-				safe_close(data, &data->p_fd[i][1]);
-				free(data->p_fd[i]);
-			}
-		}
-		free(data->p_fd);
-		data->p_fd = NULL;
+		free(data->pid);
+		data->pid = NULL;
 	}
 	data->n_cmds = 0;
 	data->n_pipes = 0;

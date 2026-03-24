@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/22 00:37:17 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 03:58:16 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/23 16:27:35 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,9 @@
 void	init(t_data *data, char **argv)
 {
 	data->fd.in = safe_open(argv[1], O_RDONLY, 0);
-	data->fd.out = safe_open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
-	data->p_fd[0] = -1;
-	data->p_fd[1] = -1;
-	if (pipe(data->p_fd) < 0)
+	data->fd.out = safe_open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0644);
+	data->pipe_fd[0] = -1;
+	data->pipe_fd[1] = -1;
+	if (pipe(data->pipe_fd) < 0)
 		error_handler(data, PIPE, 1);
 }

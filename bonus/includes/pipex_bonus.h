@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 02:10:43 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/23 05:06:24 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 02:02:36 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,8 @@ typedef struct s_fd
  * needed to handle an arbitrary number of commands.
  * @var pid     Dynamically allocated array of child process IDs.
  * @var fd      Struct containing the input and output file descriptors.
- * @var p_fd    2D array storing the read/write ends of multiple pipes.
+ * @var pipe_fd Array storing the read/write ends of multiple pipes.
+ * @var prev_fd The read-end of the previous pipe, saved for the next command.
  * @var n_cmds  The total number of commands to execute.
  * @var n_pipes The total number of pipes required (n_cmds - 1).
  * @var is_hdoc Boolean flag indicating if a here_doc is being utilized.
@@ -95,7 +96,8 @@ typedef struct s_data
 {
 	pid_t	*pid;
 	t_fd	fd;
-	int		**p_fd;
+	int		pipe_fd[2];
+	int		prev_fd;
 	int		n_cmds;
 	int		n_pipes;
 	bool	is_hdoc;
@@ -111,18 +113,20 @@ void	init(t_data *data, int argc, char **argv);
 /* ---------------------------- Execution Logic ----------------------------- */
 void	execute(t_data *data, const char *str, char **envp);
 void	child(t_data *data, const int index);
-char	**ft_get_path(const char *var, char **envp);
+char	**parser(t_data *data, const char *str);
 
 /* -------------------------- File & FD Utilities --------------------------- */
 int		safe_open(const char *file, int flags, mode_t mode);
 void	safe_close(t_data *data, int *fd);
-void	close_pipes(t_data *data, const int index);
 
 /* -------------------------------- Heredoc --------------------------------- */
 void	heredoc(t_data *data, const char *limiter);
 
 /* ------------------------ Cleanup & Error Handling ------------------------ */
-void	free_data(t_data *data);
+void	print_sys_error(const char *str);
+void	print_cmd_error(const char *cmd, const char *msg);
 void	error_handler(t_data *data, const t_error error, int status_code);
+void	free_cmd_paths(char **cmd, char **paths);
+void	free_data(t_data *data);
 
 #endif
