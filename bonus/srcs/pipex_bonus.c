@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 02:11:40 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/24 05:35:22 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 14:16:44 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,26 +14,27 @@
 
 /**
  * @fn static int wait_processes(t_data *data)
- * @brief Waits for specific child processes and extracts the final exit code.
- * @details Loops through the stored child PIDs, waiting for each specifically 
- * by its PID to prevent catching unrelated processes. Captures the exit 
- * status of the very last command in the pipeline.
+ * @brief Waits for child processes and extracts the final exit code.
+ * @details Loops through the stored child PIDs, waiting for each. 
+ * Captures the exit status of the very last command in the pipeline.
  * @param data Pointer to the master data structure.
  * @return     The exit status of the last executed command.
  */
 static int	wait_processes(t_data *data)
 {
-	int	exit_code;
-	int	status;
-	int	i;
+	pid_t	wpid;
+	int		exit_code;
+	int		status;
+	int		i;
 
 	i = -1;
 	exit_code = 0;
 	while (++i < data->n_cmds)
 	{
-		if (waitpid(data->pid[i], &status, 0) < 0)
+		wpid = waitpid(-1, &status, 0);
+		if (wpid < 0)
 			error_handler(data, WAIT, 1);
-		if (i == data->n_cmds - 1)
+		if (wpid == data->pid[data->n_cmds - 1])
 		{
 			if (WIFEXITED(status))
 				exit_code = WEXITSTATUS(status);
@@ -77,6 +78,7 @@ static int	pipex(t_data *data, char **argv, char **envp)
 		{
 			safe_close(data, &data->pipe_fd[1]);
 			data->prev_fd = data->pipe_fd[0];
+			data->pipe_fd[0] = -1;
 		}
 	}
 	return (wait_processes(data));

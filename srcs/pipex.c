@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 02:11:40 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/24 05:35:16 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 14:15:46 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,15 @@
 
 /**
  * @fn static int wait_processes(t_data *data)
- * @brief Waits for specific child processes and extracts the final exit code.
- * @details Loops through the stored child PIDs, waiting for each specifically 
- * by its PID to prevent catching unrelated processes. Captures the exit 
- * status of the very last command in the pipeline.
+ * @brief Waits for child processes and extracts the final exit code.
+ * @details Loops through the stored child PIDs, waiting for each. 
+ * Captures the exit status of the very last command in the pipeline.
  * @param data Pointer to the master data structure.
  * @return     The exit status of the last executed command.
  */
 static int	wait_processes(t_data *data)
 {
+	pid_t	wpid;
 	int		exit_code;
 	int		status;
 	int		i;
@@ -31,9 +31,10 @@ static int	wait_processes(t_data *data)
 	exit_code = 0;
 	while (++i < 2)
 	{
-		if (waitpid(data->pid[i], &status, 0) < 0)
+		wpid = waitpid(-1, &status, 0);
+		if (wpid < 0)
 			error_handler(data, WAIT, 1);
-		if (i == 1)
+		if (wpid == data->pid[1])
 		{
 			if (WIFEXITED(status))
 				exit_code = WEXITSTATUS(status);
