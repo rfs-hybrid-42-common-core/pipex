@@ -151,17 +151,21 @@ norminette -R CheckForbiddenSourceHeader srcs/ bonus/ includes/
 ---
 
 ## 📚 Resources & References
-* `man 2 pipe`
-* `man 2 fork`
-* `man 2 dup2`
-* `man 2 execve`
-* [CodeVault - Unix Processes in C](https://www.youtube.com/playlist?list=PLfqABt5AS4FkQEdkEbEKeXmEqqQ_LdihS) - An absolute goldmine for understanding forks, pipes, and wait functions.
-* **Comprehensive Written Guides (Medium):**
-  * [Pipex Tutorial - 42 Project (CS Notes)](https://csnotes.medium.com/pipex-tutorial-42-project-4469f5dd5901) - A comprehensive guide on how pipex works under the hood.
-  * [Pipex: Understanding Pipelines in C (Oussama Mimouni)](https://medium.com/@omimouni33/pipex-the-42-project-understanding-pipelines-in-c-71984b3f2103) - Great article explaining the core concepts and file descriptor routing.
-  * [Pipex 42 (abkabex)](https://medium.com/@abkabex/pipex-42-009811947a59) - A detailed walkthrough explaining the transition from shell commands to C process management.descriptor routing.
-* [42 Norm V4](https://cdn.intra.42.fr/pdf/pdf/96987/en.norm.pdf) - The strict coding standard for 42 C projects.
-* [Official 42 Norminette Repository](https://github.com/42School/norminette) - The open-source linter enforcing the strict 42 coding standard.
+
+**System Manuals:**
+* `man 2 pipe`, `man 2 fork`, `man 2 dup2`, `man 2 execve` - Essential Linux programmer's manuals for understanding process creation, file descriptor duplication, and command execution.
+
+**Articles & Guides:**
+* **[Pipex Tutorial - 42 Project (Medium)](https://csnotes.medium.com/pipex-tutorial-42-project-4469f5dd5901):** A comprehensive guide on how the pipex architecture works under the hood.
+* **[Pipex: Understanding Pipelines in C (Medium)](https://medium.com/@omimouni33/pipex-the-42-project-understanding-pipelines-in-c-71984b3f2103):** A great article explaining the core concepts and file descriptor routing.
+* **[Pipex 42 (Medium)](https://medium.com/@abkabex/pipex-42-009811947a59):** A detailed walkthrough explaining the transition from shell commands to C process management.
+
+**Video Tutorials:**
+* **[CodeVault - Unix Processes in C](https://www.youtube.com/playlist?list=PLfqABt5AS4FkQEdkEbEKeXmEqqQ_LdihS):** An absolute goldmine playlist for understanding forks, pipes, and wait functions.
+
+**42 Standards:**
+* **[42 Norm V4](https://cdn.intra.42.fr/pdf/pdf/96987/en.norm.pdf):** The strict coding standard for 42 C projects.
+* **[Official 42 Norminette Repository](https://github.com/42School/norminette):** The open-source linter enforcing the strict 42 coding standard.
 
 ### 🤖 AI Usage & Transparency
 In the spirit of transparency and the learning objectives of the 42 curriculum, here is how AI tools were utilized during this project:
