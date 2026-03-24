@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 03:46:59 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/24 02:02:36 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/24 14:36:19 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,13 @@
  */
 static void	try_exec_absolute_relative(t_data *data, char **cmd, char **envp)
 {
-	errno = 0;
+	int	saved_errno;
+
 	execve(cmd[0], cmd, envp);
+	saved_errno = errno;
 	print_sys_error(cmd[0]);
 	free_cmd_paths(cmd, NULL);
-	if (errno == ENOENT)
+	if (saved_errno == ENOENT)
 		error_handler(data, NOT_FOUND, 127);
 	error_handler(data, NOT_EXEC, 126);
 }
@@ -107,18 +109,20 @@ static char	*get_cmd_path(t_data *data, char **cmd, char **paths)
  */
 static void	run_cmd(t_data *data, char **cmd, char *cmd_path, char **envp)
 {
+	int	saved_errno;
+
 	if (!cmd_path)
 	{
 		print_cmd_error(cmd[0], ": command not found\n");
 		free_cmd_paths(cmd, NULL);
 		error_handler(data, NOT_FOUND, 127);
 	}
-	errno = 0;
 	execve(cmd_path, cmd, envp);
+	saved_errno = errno;
 	print_sys_error(cmd[0]);
 	free_cmd_paths(cmd, NULL);
 	free(cmd_path);
-	if (errno == ENOENT)
+	if (saved_errno == ENOENT)
 		error_handler(data, NOT_FOUND, 127);
 	error_handler(data, NOT_EXEC, 126);
 }
