@@ -6,7 +6,7 @@
 /*   By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 03:46:59 by maaugust          #+#    #+#             */
-/*   Updated: 2026/03/24 14:38:03 by maaugust         ###   ########.fr       */
+/*   Updated: 2026/03/25 16:41:13 by maaugust         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ static void	try_exec_absolute_relative(t_data *data, char **cmd, char **envp)
 }
 
 /**
- * @fn char **ft_get_path(const char *var, char **envp)
+ * @fn char **get_all_paths(const char *var, char **envp)
  * @brief Extracts a specific variable from the environment array.
  * @details Searches for 'var' (e.g., "PATH"). Once found, it skips the 
  * variable name and the '=' sign, splitting the rest of the string by ':'.
@@ -44,7 +44,7 @@ static void	try_exec_absolute_relative(t_data *data, char **cmd, char **envp)
  * @param envp The full array of environment variables.
  * @return     A 2D array of the separated paths, or NULL if not found.
  */
-char	**ft_get_path(const char *var, char **envp)
+char	**get_all_paths(const char *var, char **envp)
 {
 	size_t	len;
 	int		i;
@@ -146,7 +146,7 @@ void	execute(t_data *data, const char *str, char **envp)
 	cmd = parser(data, str);
 	if (ft_strchr(cmd[0], '/'))
 		try_exec_absolute_relative(data, cmd, envp);
-	paths = ft_get_path("PATH", envp);
+	paths = get_all_paths("PATH", envp);
 	if (!paths)
 	{
 		print_cmd_error(cmd[0], ": command not found\n");
