@@ -114,7 +114,34 @@ A true test of your bonus multiple-pipe implementation is to pipe hundreds of co
 ### 3. Scaling to Minishell: The Sliding Window Advantage
 While Pipex handles a linear pipeline, the architectural choice to use a **Sliding Window** for file descriptors was a deliberate preparation for [`minishell`](https://github.com/rfs-hybrid-42-common-core/minishell). In a full shell environment with bonus features, complex user input is parsed via recursive descent into a binary Abstract Syntax Tree (AST). Because pipelines are dynamically generated and deeply nested, you cannot safely rely on fixed 2D arrays to store pipes. By ensuring that only one active pipe is created at a time and the read-end is passed forward via `data->prev_fd`, this exact execution logic can be ported directly into [`minishell`](https://github.com/rfs-hybrid-42-common-core/minishell)'s recursive AST executor. When traversing a `PIPE` node, it effortlessly routes the FDs through the left and right branches, guaranteeing zero FD leaks and preventing exhaustion regardless of pipeline complexity.
 
-### 4. Third-Party Testers
+### 4. Memory Leak & FD Verification (Valgrind)
+Because `pipex` utilizes dynamically allocated arrays for process IDs and environmental path matrices, it is critical to verify memory safety. Furthermore, tracking open File Descriptors is essential, as leaving pipes open will cause the program to hang. Use the `--track-fds=yes` flag in Valgrind to ensure absolute system safety across both mandatory and bonus executables:
+
+**Scenario 1: Mandatory - Invalid Command Leak**
+
+Forces the mandatory program to parse the environment paths, fail to find the binary, free the 2D arrays, and exit securely without executing.
+```bash
+valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes ./pipex infile "ls -l" "invalid_command" outfile
+```
+
+**Scenario 2: Bonus - Multiple Pipes & Invalid Command**
+
+Checks the bonus logic to ensure the dynamic PID arrays and sliding window pipes don't leak when a middle command fails.
+```bash
+valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes ./pipex_bonus infile "ls -l" "invalid_command" "wc -l" outfile
+```
+
+**Scenario 3: Bonus - `here_doc` Static Buffer Drain**
+
+Ensures the `get_next_line` static buffers are cleanly freed when the `LIMITER` is reached and that the anonymous memory pipe is closed correctly.
+```bash
+valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes ./pipex_bonus here_doc EOF "grep a" "wc -l" outfile
+```
+
+*Expected Valgrind Output for all scenarios:* `All heap blocks were freed -- no leaks are possible`
+`FILE DESCRIPTORS: 3 open at exit. (These are standard 0, 1, 2)`
+
+### 5. Third-Party Testers
 To ensure your Pipex handles temporary zombie processes, exact exit codes, and memory leaks perfectly, I highly recommend running your code through these community testers:
 * [michmos / 42_pipex_tester](https://github.com/michmos/42_pipex_tester) - Excellent for checking exact bash-equivalent exit codes.
 * [bastienkody / pipex_tester](https://github.com/bastienkody/pipex_tester) - Great for catching temporary zombie processes and FD leaks.
