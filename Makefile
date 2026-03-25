@@ -6,7 +6,7 @@
 #    By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/17 03:42:32 by maaugust          #+#    #+#              #
-#    Updated: 2026/03/24 01:44:37 by maaugust         ###   ########.fr        #
+#    Updated: 2026/03/25 15:45:54 by maaugust         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ B_NAME         = pipex_bonus
 CC             = cc
 CFLAGS         = -Wall -Wextra -Werror -MMD -MP
 INCLUDES       = -Iincludes -Ilibft/includes
-B_INCLUDES     = -Ibonus/includes -I./../libft/includes
+B_INCLUDES     = -Ibonus/includes -Ilibft/includes
 RM             = rm -rf
 
 # ================================== COLORS ================================== #
@@ -42,19 +42,23 @@ SRC            = $(shell find $(SRC_PATH) -name '*.c')
 B_SRC_PATH     = ./bonus/srcs
 B_SRC          = $(shell find $(B_SRC_PATH) -name '*.c')
 
-# Object files
+# =============================== OBJECT FILES =============================== #
+# Mandatory files
 OBJ_PATH       = ./objs
 OBJ            = $(patsubst $(SRC_PATH)/%.c, $(OBJ_PATH)/%.o, $(SRC))
 
+# Bonus files
 B_OBJ_PATH     = ./bonus/objs
 B_OBJ          = $(patsubst $(B_SRC_PATH)/%.c, $(B_OBJ_PATH)/%.o, $(B_SRC))
 
 # ============================ COMPILATION RULES ============================= #
+# Mandatory files
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c
 	@mkdir -p $(dir $@)
 	@printf "$(CYAN)Compiling:$(RESET) $(YELLOW)$<$(RESET)\n"
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
+# Bonus files
 $(B_OBJ_PATH)/%.o: $(B_SRC_PATH)/%.c
 	@mkdir -p $(dir $@)
 	@printf "$(CYAN)Compiling:$(RESET) $(YELLOW)$<$(RESET)\n"
