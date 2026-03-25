@@ -6,7 +6,7 @@
 #    By: maaugust <maaugust@student.42porto.com>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/12/03 18:21:29 by maaugust          #+#    #+#              #
-#    Updated: 2026/03/24 18:14:54 by maaugust         ###   ########.fr        #
+#    Updated: 2026/03/25 15:46:41 by maaugust         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,6 +32,7 @@ BOLD             := \033[1m
 SRC_PATH    = srcs
 SRC         = $(shell find $(SRC_PATH) -name '*.c')
 
+# =============================== OBJECT FILES =============================== #
 OBJ_PATH    = objs
 OBJ         = $(patsubst $(SRC_PATH)/%.c, $(OBJ_PATH)/%.o, $(SRC))
 
