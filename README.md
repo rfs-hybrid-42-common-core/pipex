@@ -188,7 +188,7 @@ norminette -R CheckForbiddenSourceHeader srcs/ bonus/ includes/
 * **[Pipex 42 (Medium)](https://medium.com/@abkabex/pipex-42-009811947a59):** A detailed walkthrough explaining the transition from shell commands to C process management.
 
 **Video Tutorials:**
-* **[CodeVault - Unix Processes in C](https://www.youtube.com/playlist?list=PLfqABt5AS4FkQEdkEbEKeXmEqqQ_LdihS):** An absolute goldmine playlist for understanding forks, pipes, and wait functions.
+* **[CodeVault - Unix Processes in C](https://www.youtube.com/playlist?list=PLfqABt5AS4FkW5mOn2Tn9ZZLLDwA3kZUY):** An absolute goldmine playlist for understanding forks, pipes, and wait functions.
 
 **42 Standards:**
 * **[42 Norm V4](https://cdn.intra.42.fr/pdf/pdf/96987/en.norm.pdf):** The strict coding standard for 42 C projects.
